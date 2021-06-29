@@ -7,8 +7,8 @@
 //
 
 #include "MidiSmoother.h"
-
 #include <iostream>
+#include <time.h>
 
 MidiSmoother::MidiSmoother( int midi_values_per_revolution, double seconds_per_revolution ) :
 mMidiValuesPerRevolution( midi_values_per_revolution ),
@@ -33,7 +33,8 @@ void MidiSmoother::StartMidiProcessing()
  * Indicates that the midi processing is about to begin!
  */
 {
-	
+	startTime = time(0);
+	mbMidiIsProcessing = true;
 }
 
 void MidiSmoother::StopMidiProcessing()
@@ -58,7 +59,11 @@ void MidiSmoother::NotifyMidiValue( char midi_value )
  */
 {
 	// NB: This is incorrect! This assumes that we recieve a midi value every millisecond which isn't true
-	mLastVelocity = midi_value/(double)mMidiValuesPerRevolution * mSecondsPerRevolution * 1000;
+	lastTimeSinceCheck = (difftime(time(0), startTime) * 1000) - lastTimeSinceCheck;
+
+	mLastVelocity = midi_value/(double)mMidiValuesPerRevolution * mSecondsPerRevolution * lastTimeSinceCheck;
+	
+	std::cout << "Time: " << lastTimeSinceCheck << " seconds" << std::endl;
 }
 
 double MidiSmoother::RequestMSToMoveValue( double ms_to_process ) const

@@ -5,6 +5,7 @@
 //  Created by Nathan Holmberg on 9/04/14.
 //  Copyright (c) 2014 Nathan Holmberg. All rights reserved.
 //
+#include <time.h>
 
 #ifndef MidiSmoother_MidiSmoother_h
 #define MidiSmoother_MidiSmoother_h
@@ -28,6 +29,9 @@ private:
 	const int mMidiValuesPerRevolution; // the number of midi values that would need to be recieved for an entire platter revolution to be expected
 	const double mSecondsPerRevolution; // the number of seconds an entire platter revolution represents
 	bool mbMidiIsProcessing;
+
+	double lastTimeSinceCheck = 0;
+	time_t startTime;
 private:
 	// This is an example of the absolute simplest way of providing velocity.
 	double mLastVelocity;
