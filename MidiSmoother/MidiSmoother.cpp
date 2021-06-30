@@ -50,6 +50,37 @@ bool MidiSmoother::MidiIsProcessing() const
 	return mbMidiIsProcessing;
 }
 
+
+bool MidiSmoother::TryDecompressMidiValue(char& midi_value, uint32_t& outputValue)
+{
+	outputValue = midi_value;
+
+	// Return if data decompression is not needed 
+	if (!(outputValue & 0x80))
+		return true;
+
+	// Gets lower 7 bits of byte
+	outputValue &= 0x7f;
+
+	outputValue = (outputValue << 7) | (storedMidiValue & 0x7F);
+
+	return !(outputValue & 0x80);
+}
+
+char* MidiSmoother::CharToBinary(unsigned char c)
+{
+	static char bin[CHAR_BIT + 1] = { 0 };
+	int i;
+
+	for (i = CHAR_BIT - 1; i >= 0; i--)
+	{
+		bin[i] = (c % 2) + '0';
+		c /= 2;
+	}
+
+	return bin;
+}
+
 void MidiSmoother::NotifyMidiValue( char midi_value )
 /*
  * Notify the smoother that a new value has been received from the platter.
@@ -59,11 +90,20 @@ void MidiSmoother::NotifyMidiValue( char midi_value )
  */
 {
 	// NB: This is incorrect! This assumes that we recieve a midi value every millisecond which isn't true
-	lastTimeSinceCheck = (difftime(time(0), startTime) * 1000) - lastTimeSinceCheck;
-
-	mLastVelocity = midi_value/(double)mMidiValuesPerRevolution * mSecondsPerRevolution * lastTimeSinceCheck;
 	
-	std::cout << "Time: " << lastTimeSinceCheck << " seconds" << std::endl;
+	uint32_t outputMidiValue;
+
+	bool wasDecompressed = TryDecompressMidiValue(midi_value, outputMidiValue);
+
+	storedMidiValue = wasDecompressed ? 0 : outputMidiValue;
+
+	if(wasDecompressed == false)
+		return;
+	
+	lastTimeSinceCheck = (difftime(time(0), startTime) * 1000) - lastTimeSinceCheck;
+	mLastVelocity = outputMidiValue/(double)mMidiValuesPerRevolution * mSecondsPerRevolution * 1000;
+	
+	printf("Time: %f seconds | Char: %c", lastTimeSinceCheck, midi_value);
 }
 
 double MidiSmoother::RequestMSToMoveValue( double ms_to_process ) const

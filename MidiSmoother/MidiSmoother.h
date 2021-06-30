@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 Nathan Holmberg. All rights reserved.
 //
 #include <time.h>
+#include <stdint.h>
 
 #ifndef MidiSmoother_MidiSmoother_h
 #define MidiSmoother_MidiSmoother_h
@@ -24,14 +25,23 @@ public:
 	void StopMidiProcessing();
 	
 	bool MidiIsProcessing() const;
+
+
+	// Uncompress the Midi value
+	bool TryDecompressMidiValue(char& midi_value, uint32_t& outputValue);
+
+	char* CharToBinary(unsigned char c);
 private:
 	// These variables should not be modified to ensure things continue as necessary
 	const int mMidiValuesPerRevolution; // the number of midi values that would need to be recieved for an entire platter revolution to be expected
 	const double mSecondsPerRevolution; // the number of seconds an entire platter revolution represents
 	bool mbMidiIsProcessing;
 
-	double lastTimeSinceCheck = 0;
+	float lastTimeSinceCheck = 0;
 	time_t startTime;
+
+	uint32_t storedMidiValue;
+
 private:
 	// This is an example of the absolute simplest way of providing velocity.
 	double mLastVelocity;
