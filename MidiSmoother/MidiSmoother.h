@@ -11,23 +11,23 @@
 #ifndef MidiSmoother_MidiSmoother_h
 #define MidiSmoother_MidiSmoother_h
 
-class MidiSmoother
-{
 	/// <summary>
 	/// Used to check the type of note coming in 
 	/// https://midifile.sapp.org/class/MidiMessage/
 	/// </summary>
-	enum MidiStatus : uint8_t
-	{
-		NoteOff = 0x80,
-		NoteOn = 0x90,
-		Aftertouch = 0xA0,
-		ContinuousController = 0xB0,
-		PatchChange = 0xC0,
-		ChannelPressure = 0xD0,
-		PitchBend = 0xE0,
-	};
+enum MidiStatus : uint8_t
+{
+	NoteOff = 0x80,
+	NoteOn = 0x90,
+	Aftertouch = 0xA0,
+	ContinuousController = 0xB0,
+	PatchChange = 0xC0,
+	ChannelPressure = 0xD0,
+	PitchBend = 0xE0,
+};
 
+class MidiSmoother
+{
 public:
 	MidiSmoother( int midi_values_per_revolution, double seconds_per_revolution );
 	
@@ -41,12 +41,14 @@ public:
 	
 	bool MidiIsProcessing() const;
 
-
+private:
 	// Uncompress the Midi value
 	bool TryDecompressMidiValue(char& midi_value, uint32_t& outputValue);
 
 	char* CharToBinary(unsigned char c);
-private:
+
+	bool CanMidiValueAffectVelocity(uint32_t midi_value);
+
 	// These variables should not be modified to ensure things continue as necessary
 	const int mMidiValuesPerRevolution; // the number of midi values that would need to be recieved for an entire platter revolution to be expected
 	const double mSecondsPerRevolution; // the number of seconds an entire platter revolution represents

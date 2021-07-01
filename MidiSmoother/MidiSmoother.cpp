@@ -56,7 +56,7 @@ bool MidiSmoother::TryDecompressMidiValue(char& midi_value, uint32_t& outputValu
 	outputValue = midi_value;
 
 	// Return if data decompression is not needed 
-	if (!(outputValue & 0x80))
+	if (!(outputValue & MidiStatus::NoteOff))
 		return true;
 
 	// Gets lower 7 bits of byte
@@ -64,7 +64,7 @@ bool MidiSmoother::TryDecompressMidiValue(char& midi_value, uint32_t& outputValu
 
 	outputValue = (outputValue << 7) | (mStoredMidiValue & 0x7F);
 
-	return !(outputValue & 0x80);
+	return !(outputValue & MidiStatus::NoteOff);
 }
 
 char* MidiSmoother::CharToBinary(unsigned char c)
@@ -79,6 +79,13 @@ char* MidiSmoother::CharToBinary(unsigned char c)
 	}
 
 	return bin;
+}
+
+bool MidiSmoother::CanMidiValueAffectVelocity(uint32_t midi_value)
+{
+	auto midiStatus = midi_value & 0xF0;
+
+	return !(midiStatus == MidiStatus::NoteOff || midiStatus == MidiStatus::ChannelPressure);
 }
 
 void MidiSmoother::NotifyMidiValue( char midi_value )
@@ -102,14 +109,17 @@ void MidiSmoother::NotifyMidiValue( char midi_value )
 
 	bool wasDecompressed = TryDecompressMidiValue(midi_value, outputMidiValue);
 
-	mStoredMidiValue = wasDecompressed ? 0 : outputMidiValue;
+	mStoredMidiValue = wasDecompressed ? outputMidiValue : 0;
 
 	if(wasDecompressed == false)
 		return;
-	
+
+	if (CanMidiValueAffectVelocity(outputMidiValue) == false)
+	{
+		outputMidiValue = 0;
+	}
+
 	mLastVelocity = outputMidiValue/(double)mMidiValuesPerRevolution * mSecondsPerRevolution * mLastTimeSinceCheck;
-	
-	//printf("Time: %f seconds | Char: %c", mLastTimeSinceCheck, midi_value);
 }
 
 double MidiSmoother::RequestMSToMoveValue( double ms_to_process ) const
