@@ -91,25 +91,25 @@ void MidiSmoother::NotifyMidiValue( char midi_value )
 {
 	// NB: This is incorrect! This assumes that we recieve a midi value every millisecond which isn't true
 
-	uint32_t outputMidiValue;
-
-	bool wasDecompressed = TryDecompressMidiValue(midi_value, outputMidiValue);
-
-	mStoredMidiValue = wasDecompressed ? 0 : outputMidiValue;
-
+	mLastTimeSinceCheck = (difftime(time(0), mStartTime) * 1000) - mLastTimeSinceCheck;
 
 	if (midi_value == mLastStoredNote)
 		return;
 
 	mLastStoredNote = midi_value;
 
+	uint32_t outputMidiValue;
+
+	bool wasDecompressed = TryDecompressMidiValue(midi_value, outputMidiValue);
+
+	mStoredMidiValue = wasDecompressed ? 0 : outputMidiValue;
+
 	if(wasDecompressed == false)
 		return;
 	
-	mLastTimeSinceCheck = (difftime(time(0), mStartTime) * 1000) - mLastTimeSinceCheck;
 	mLastVelocity = outputMidiValue/(double)mMidiValuesPerRevolution * mSecondsPerRevolution * mLastTimeSinceCheck;
 	
-	printf("Time: %f seconds | Char: %c", mLastTimeSinceCheck, midi_value);
+	//printf("Time: %f seconds | Char: %c", mLastTimeSinceCheck, midi_value);
 }
 
 double MidiSmoother::RequestMSToMoveValue( double ms_to_process ) const
