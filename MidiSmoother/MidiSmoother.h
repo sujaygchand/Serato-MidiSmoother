@@ -37,10 +37,11 @@ private:
 	const double mSecondsPerRevolution; // the number of seconds an entire platter revolution represents
 	bool mbMidiIsProcessing;
 
-	float lastTimeSinceCheck = 0;
-	time_t startTime;
-
-	uint32_t storedMidiValue;
+	float mLastTimeSinceCheck = 0;
+	time_t mStartTime;
+	
+	char mLastStoredNote;
+	uint32_t mStoredMidiValue;
 
 private:
 	// This is an example of the absolute simplest way of providing velocity.
