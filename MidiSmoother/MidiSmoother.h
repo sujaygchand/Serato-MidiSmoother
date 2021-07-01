@@ -42,9 +42,10 @@ public:
 	bool MidiIsProcessing() const;
 
 private:
-	// Uncompress the Midi value
-	bool TryDecompressMidiValue(char& midi_value, uint32_t& outputValue);
+	// Try decompress the Midi value from 8 bit to 32 bit value
+	bool TryDecompressMidiValue(char& midi_value, uint32_t& output_value);
 
+	// Helper function to find binary of char
 	char* CharToBinary(unsigned char c);
 
 	bool CanMidiValueAffectVelocity(uint32_t midi_value);
